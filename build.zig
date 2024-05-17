@@ -41,7 +41,7 @@ pub fn build(b: *std.Build) void {
     // step when running `zig build`).
     exe.linkLibC();
     exe.linkSystemLibrary("SDL2");
-    exe.linkSystemLibrary("SDL2_image");
+    exe.linkSystemLibrary("SDL2_GFX");
     b.installArtifact(exe);
 
     // This *creates* a Run step in the build graph, to be executed when another

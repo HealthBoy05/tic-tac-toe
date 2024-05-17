@@ -1,6 +1,7 @@
 const std = @import("std");
 const c = @cImport({
     @cInclude("SDL2/SDL.h");
+    @cInclude("SDL2/SDL2_gfxPrimitives.h");
 });
 const r = @import("./render.zig");
 const g = @import("./game.zig");
@@ -12,7 +13,7 @@ pub fn main() !void {
         return error.SDLInitializationError;
     }
 
-    const window = c.SDL_CreateWindow("tic tac toe", c.SDL_WINDOWPOS_CENTERED, c.SDL_WINDOWPOS_CENTERED, g.SCREEN_HEIGHT, g.SCREEN_WIDTH, c.SDL_WINDOW_OPENGL) orelse {
+    const window = c.SDL_CreateWindow("tic tac toe", c.SDL_WINDOWPOS_CENTERED, c.SDL_WINDOWPOS_CENTERED, g.SCREEN_WIDTH, g.SCREEN_HEIGHT, c.SDL_WINDOW_OPENGL) orelse {
         c.SDL_Log("error in Window Initialization %s", c.SDL_Error);
         return error.SDLInitializationError;
     };
@@ -33,12 +34,10 @@ pub fn main() !void {
                 else => {},
             }
         }
+        _ = c.SDL_SetRenderDrawColor(renderer, 255, 255, 255, c.SDL_ALPHA_OPAQUE);
         _ = c.SDL_RenderClear(renderer);
-        _ = c.SDL_SetRenderDrawColor(renderer, 125, 125, 125, c.SDL_ALPHA_OPAQUE);
-        _ = c.SDL_RenderDrawLine(renderer, 0, 0, 480, 600);
-        _ = c.SDL_RenderDrawLine(renderer, 480, 600, 0, 0);
-        c.SDL_RenderPresent(renderer);
         r.render(renderer);
+        c.SDL_RenderPresent(renderer);
         c.SDL_Delay(3);
     }
 }
