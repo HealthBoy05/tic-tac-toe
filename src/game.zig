@@ -14,7 +14,7 @@ pub const turn = enum {
     Player2,
 };
 
-pub const state = enum { Running, Tie, Quit };
+pub const state = enum { Running, Tie, Over, Quit };
 
 pub const Color = struct {
     r: u8,

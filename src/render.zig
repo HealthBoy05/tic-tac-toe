@@ -8,17 +8,47 @@ const g = @import("./game.zig");
 const l = @import("./logic.zig");
 const N = 3;
 
-pub fn render(ren: *c.SDL_Renderer) void {
+pub fn render(ren: *c.SDL_Renderer, game: g.Game) void {
     _ = c.SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    drawBoard(ren, g.PLAYING_COLOR);
-    drawX(ren, 5, g.PLAYER_X_COLOR);
-    drawO(ren, 6, g.PLAYER_Y_COLOR);
-    // empty board
-    // on click, we check if the game state is running
-    // if running we draw the correct symbol in the position
-    // tie we color the board grey
-    // if win we color the board red <- after
+
+    switch (game.state) {
+        .Running => {
+            drawBoard(ren, g.PLAYING_COLOR);
+            drawXAndO(ren, game.board);
+        },
+        .Tie => {
+            drawBoard(ren, g.PLAYING_COLOR);
+            drawXAndO(ren, game.board);
+        },
+        .Over => {
+            const winningColor: g.Color = switch (game.turn) {
+                .Player1 => g.PLAYER_X_COLOR,
+                .Player2 => g.PLAYER_Y_COLOR,
+            };
+            drawBoard(ren, winningColor);
+            drawXAndO(ren, game.board);
+        },
+        .Quit => {},
+    }
 }
+
+fn drawXAndO(ren: *c.SDL_Renderer, board: [3][3]g.symbol) void {
+    for (0..3) |i| {
+        for (0..3) |j| {
+            const symbol = board[i][j];
+            switch (symbol) {
+                .Player1 => {
+                    drawX(ren, j, i, g.PLAYER_X_COLOR);
+                },
+                .Player2 => {
+                    drawO(ren, j, i, g.PLAYER_Y_COLOR);
+                },
+                .None => {},
+            }
+        }
+    }
+}
+
 fn drawBoard(ren: *c.SDL_Renderer, color: g.Color) void {
     _ = c.SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, color.a);
     for (1..4) |i| {
@@ -30,9 +60,9 @@ fn drawBoard(ren: *c.SDL_Renderer, color: g.Color) void {
     }
 }
 
-fn drawX(ren: *c.SDL_Renderer, position: c_int, color: g.Color) void {
-    const squareX: c_int = @mod((position - 1), g.N);
-    const squareY: c_int = @divFloor((position - 1), g.N);
+fn drawX(ren: *c.SDL_Renderer, x: usize, y: usize, color: g.Color) void {
+    const squareX: c_int = @intCast(x);
+    const squareY: c_int = @intCast(y);
     const paddingX: i16 = @intFromFloat(@as(f32, g.CELL_SIZE_X) * 0.25);
     const paddingY: i16 = @intFromFloat(@as(f32, g.CELL_SIZE_Y) * 0.25);
 
@@ -40,13 +70,14 @@ fn drawX(ren: *c.SDL_Renderer, position: c_int, color: g.Color) void {
     const rightOfCell: i16 = @intCast((g.CELL_SIZE_X * (squareX + 1)) - paddingX);
     const topOfCell: i16 = @intCast((g.CELL_SIZE_Y * squareY) + paddingY);
     const bottomOfCell: i16 = @intCast((g.CELL_SIZE_Y * (squareY + 1)) - paddingY);
+
     _ = c.thickLineRGBA(ren, leftOfCell, topOfCell, rightOfCell, bottomOfCell, 10, color.r, color.g, color.b, color.a);
     _ = c.thickLineRGBA(ren, leftOfCell, bottomOfCell, rightOfCell, topOfCell, 10, color.r, color.g, color.b, color.a);
 }
 
-fn drawO(ren: *c.SDL_Renderer, position: c_int, color: g.Color) void {
-    const squareX: c_int = @mod((position - 1), g.N);
-    const squareY: c_int = @divFloor((position - 1), g.N);
+fn drawO(ren: *c.SDL_Renderer, x: usize, y: usize, color: g.Color) void {
+    const squareX: c_int = @intCast(x);
+    const squareY: c_int = @intCast(y);
 
     const leftOfCell: i16 = @intCast(g.CELL_SIZE_X * squareX);
     const topOfCell: i16 = @intCast(g.CELL_SIZE_Y * squareY);
